@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baghdad Garden</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --tg-theme-bg-color: #f5f5f5; --tg-theme-text-color: #000; --tg-theme-button-color: #3390ec; --tg-theme-button-text-color: #fff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* HUD */
+        .hud { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .points-box { font-size: 18px; font-weight: bold; color: #2e7d32; }
+        .btn-shop { background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+
+        /* GRID */
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; max-width: 400px; }
+        .slot { aspect-ratio: 1; background: #e0e0e0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: transform 0.1s; border: 2px solid transparent; }
+        .slot:active { transform: scale(0.98); }
+        .slot.locked { background: #ccc; opacity: 0.5; cursor: not-allowed; }
+        
+        /* PLANT STYLES */
+        .plant-emoji { font-size: 40px; }
+        .timer-bar { width: 80%; height: 6px; background: #ddd; border-radius: 3px; margin-top: 5px; overflow: hidden; display: none; }
+        .timer-fill { height: 100%; background: #4caf50; width: 0%; transition: width linear; }
+        
+        /* SHOP MODAL */
+        #shopModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 80%; max-width: 300px; text-align: center; }
+        .shop-item { margin: 10px 0; padding: 10px; border: 1px solid #eee; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-buy { background: #2e7d32; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .btn-buy:disabled { background: #999; }
+        .close-shop { margin-top: 15px; background: #f44336; color: white; border: none; padding: 8px 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="hud">
+        <div class="points-box">🌱 <span id="score">0</span> Points</div>
+        <button class="btn-shop" onclick="openShop()">🛒 Shop</button>
+    </div>
+
+    <div class="grid" id="gardenGrid">
+        </div>
+
+    <div id="shopModal">
+        <div class="modal-content">
+            <h3>Garden Shop</h3>
+            
+            <div class="shop-item">
+                <div style="text-align:left">
+                    <strong>Expand Land</strong><br>
+                    <small>Add 1 Slot (Max 64)</small>
+                </div>
+                <button class="btn-buy" id="btnBuySlot" onclick="buySlot()">200 Pts</button>
+            </div>
+
+            <div class="shop-item">
+                <div style="text-align:left">
+                    <strong>Super Seed</strong><br>
+                    <small>Value: 50 Pts (Default: 10)</small>
+                </div>
+                <button class="btn-buy" id="btnBuySeed" onclick="buyBetterSeed()">500 Pts</button>
+            </div>
+
+            <button class="close-shop" onclick="closeShop()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME CONFIG ---
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Make it fullscreen in Telegram
+
+        let gameState = {
+            points: 0,
+            unlockedSlots: 4,
+            seedLevel: 1, // 1 = Basic (10pts), 2 = Super (50pts)
+            slotCost: 200,
+            slots: [] // Stores data for each slot: { plantTime: null, ready: false, harvestCount: 0 }
+        };
+
+        // Initialize or Load Save
+        const savedData = localStorage.getItem('baghdadGardenSave');
+        if (savedData) {
+            gameState = JSON.parse(savedData);
+        } else {
+            // Create empty slots
+            for(let i=0; i<64; i++) gameState.slots.push({ active: false, harvestCount: 0, startTime: 0, duration: 0 });
+        }
+
+        // --- RENDER FUNCTION ---
+        const gridEl = document.getElementById('gardenGrid');
+        const scoreEl = document.getElementById('score');
+        const btnSlot = document.getElementById('btnBuySlot');
+        const btnSeed = document.getElementById('btnBuySeed');
+
+        function render() {
+            scoreEl.innerText = Math.floor(gameState.points);
+            gridEl.innerHTML = '';
+            
+            // Render only visible/unlocked slots
+            for (let i = 0; i < gameState.unlockedSlots; i++) {
+                const slotData = gameState.slots[i];
+                const slotEl = document.createElement('div');
+                slotEl.className = 'slot';
+                
+                // Logic to display plant state
+                if (!slotData.active) {
+                    slotEl.innerHTML = `<span style="font-size:24px; opacity:0.5">🕳️</span><small>Tap to Plant</small>`;
+                    slotEl.onclick = () => plantSeed(i);
+                } else {
+                    const now = Date.now();
+                    const timeLeft = (slotData.startTime + slotData.duration) - now;
+                    
+                    if (timeLeft <= 0) {
+                        // Ready to Harvest
+                        slotEl.innerHTML = `<span class="plant-emoji">🌻</span><small>HARVEST!</small>`;
+                        slotEl.style.borderColor = "#4caf50";
+                        slotEl.onclick = () => harvest(i);
+                    } else {
+                        // Growing
+                        const percent = 100 - (timeLeft / slotData.duration * 100);
+                        slotEl.innerHTML = `<span class="plant-emoji">🌱</span>
+                                            <div class="timer-bar" style="display:block">
+                                                <div class="timer-fill" style="width:${percent}%"></div>
+                                            </div>`;
+                    }
+                }
+                gridEl.appendChild(slotEl);
+            }
+
+            // Update Shop Button Prices
+            btnSlot.innerText = `${gameState.slotCost} Pts`;
+            btnSlot.disabled = gameState.points < gameState.slotCost;
+            
+            // Check max slots
+            if (gameState.unlockedSlots >= 64) {
+                btnSlot.innerText = "MAX LAND";
+                btnSlot.disabled = true;
+            }
+
+            // Save automatically
+            localStorage.setItem('baghdadGardenSave', JSON.stringify(gameState));
+        }
+
+        // --- GAME LOGIC ---
+
+        function plantSeed(index) {
+            const slot = gameState.slots[index];
+            slot.active = true;
+            
+            // Logic: 3 times special growth
+            // Harvest Count 0 = First time (Normal Time)
+            // Harvest Count 1, 2, 3 = Special (Half Time)
+            let baseTime = 4000; // 4 seconds normal
+            if (slot.harvestCount >= 1 && slot.harvestCount <= 3) {
+                baseTime = baseTime / 2; // Half time
+            }
+
+            slot.duration = baseTime;
+            slot.startTime = Date.now();
+            render();
+            // Start a loop for the progress bar
+            requestAnimationFrame(updateTimers);
+        }
+
+        function harvest(index) {
+            const slot = gameState.slots[index];
+            
+            // Calculate Points
+            let basePoints = gameState.seedLevel === 1 ? 10 : 50;
+            
+            // "More points for 3 times" logic
+            if (slot.harvestCount >= 1 && slot.harvestCount <= 3) {
+                basePoints = basePoints * 2; // Double points
+            }
+
+            gameState.points += basePoints;
+            slot.harvestCount++;
+
+            // Reset logic
+            if (slot.harvestCount > 3) {
+                // Plant dies after 3 special harvests (4 total)
+                slot.active = false;
+                slot.harvestCount = 0; // Reset for next seed
+            } else {
+                // Auto replant logic (Regrowing)
+                plantSeed(index);
+                return; // skip the render below because plantSeed calls it
+            }
+            render();
+        }
+
+        function updateTimers() {
+            // Simple loop to animate progress bars without refreshing whole logic
+            // In a real app, we'd optimize this.
+            render(); 
+            // If any plant is growing, keep looping
+            if (gameState.slots.some(s => s.active && Date.now() < s.startTime + s.duration)) {
+                requestAnimationFrame(updateTimers);
+            }
+        }
+
+        // --- SHOP LOGIC ---
+        function openShop() { document.getElementById('shopModal').style.display = 'flex'; }
+        function closeShop() { document.getElementById('shopModal').style.display = 'none'; }
+
+        function buySlot() {
+            if (gameState.points >= gameState.slotCost && gameState.unlockedSlots < 64) {
+                gameState.points -= gameState.slotCost;
+                gameState.unlockedSlots++;
+                gameState.slotCost = Math.floor(gameState.slotCost * 1.5); // Price goes up
+                render();
+            }
+        }
+
+        function buyBetterSeed() {
+            if (gameState.points >= 500) {
+                gameState.points -= 500;
+                gameState.seedLevel = 2;
+                alert("You now use Super Seeds (5x value)!");
+                closeShop();
+                render();
+            }
+        }
+
+        // Start
+        setInterval(() => render(), 1000); // Fail-safe render every second
+        render();
+
+    </script>
+</body>
+  </html>
+

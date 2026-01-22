@@ -1,103 +1,83 @@
-// Initialize Telegram WebApp
 const tg = window.Telegram.WebApp;
-tg.expand(); // Expands the app to full height
+tg.expand();
 
-// --- CONFIGURATION ---
-const COINS_TO_BIG_COIN = 30000; // 30 days * 1000
-const MINE_AMOUNT = 1000;
-const COOLDOWN_TIME = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+// CONFIG
+const DAY_POINTS = 1000;
+const SECONDS_IN_DAY = 86400;
+const POINTS_PER_SECOND = DAY_POINTS / SECONDS_IN_DAY; // ~0.01157
 
-// --- STATE MANAGEMENT ---
-// We use localStorage to save data on the user's phone for now
-let points = parseInt(localStorage.getItem('heaven_points')) || 0;
-let lastMineTime = parseInt(localStorage.getItem('last_mine_time')) || 0;
+let totalPoints = parseFloat(localStorage.getItem('h_points')) || 0;
+let lastMineTime = parseInt(localStorage.getItem('h_last_mine')) || 0;
+let miningInterval;
 
-// Elements
-const pointEl = document.getElementById('point-balance');
-const coinEl = document.getElementById('coin-balance');
-const mineBtn = document.getElementById('mine-btn');
-const timerEl = document.getElementById('timer');
-const tonPriceEl = document.getElementById('ton-price');
-
-// --- FUNCTIONS ---
-
-function updateUI() {
-    // Update Points
-    pointEl.innerText = points.toLocaleString();
-    
-    // Calculate Big Coins (Heaven Coins)
-    const bigCoins = (points / COINS_TO_BIG_COIN).toFixed(2);
-    coinEl.innerText = `≈ ${bigCoins} Big Coins`;
+function updateDisplay() {
+    document.getElementById('point-balance').innerText = totalPoints.toFixed(3);
+    const bigCoins = (totalPoints / 30000).toFixed(4);
+    document.getElementById('coin-balance').innerText = `${bigCoins} Big Coins`;
 }
 
-function checkMineStatus() {
+function startFarmingVisuals() {
+    if (miningInterval) clearInterval(miningInterval);
+    miningInterval = setInterval(() => {
+        totalPoints += POINTS_PER_SECOND;
+        localStorage.setItem('h_points', totalPoints);
+        updateDisplay();
+    }, 1000); // Updates every second
+}
+
+function checkStatus() {
     const now = Date.now();
+    const cooldown = 24 * 60 * 60 * 1000;
     const timePassed = now - lastMineTime;
 
-    if (timePassed >= COOLDOWN_TIME) {
-        // Ready to mine
-        mineBtn.disabled = false;
-        mineBtn.innerText = "Press & Relax";
-        timerEl.innerText = "Your daily harvest is ready.";
+    if (lastMineTime !== 0 && timePassed < cooldown) {
+        // Mining is in progress
+        document.getElementById('mine-btn').disabled = true;
+        document.getElementById('mine-btn').innerText = "Farming...";
+        document.getElementById('timer-container').style.display = 'block';
+        startFarmingVisuals();
+        updateCountdown(cooldown - timePassed);
     } else {
-        // Still cooling down
-        mineBtn.disabled = true;
-        const timeLeft = COOLDOWN_TIME - timePassed;
-        
-        // Convert to hours and minutes
-        const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-        
-        mineBtn.innerText = "Relaxing...";
-        timerEl.innerText = `Next harvest in: ${hours}h ${minutes}m`;
+        // Ready to start
+        document.getElementById('mine-btn').disabled = false;
+        document.getElementById('mine-btn').innerText = "Start Relaxing";
+        document.getElementById('timer-container').style.display = 'none';
+        if (miningInterval) clearInterval(miningInterval);
     }
 }
 
-function mine() {
-    // Add points
-    points += MINE_AMOUNT;
+function updateCountdown(timeLeft) {
+    const timer = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            checkStatus();
+            return;
+        }
+        timeLeft -= 1000;
+        const h = Math.floor(timeLeft / 3600000);
+        const m = Math.floor((timeLeft % 3600000) / 60000);
+        const s = Math.floor((timeLeft % 60000) / 1000);
+        document.getElementById('countdown').innerText = 
+            `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }, 1000);
+}
+
+document.getElementById('mine-btn').addEventListener('click', () => {
     lastMineTime = Date.now();
+    localStorage.setItem('h_last_mine', lastMineTime);
+    tg.HapticFeedback.impactOccurred('heavy');
+    checkStatus();
+});
 
-    // Save to storage
-    localStorage.setItem('heaven_points', points);
-    localStorage.setItem('last_mine_time', lastMineTime);
-
-    // Vibration feedback (Haptic)
-    if (tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('medium');
-    }
-
-    // Update UI
-    updateUI();
-    checkMineStatus();
-    
-    // Optional: Show a popup
-    tg.showPopup({
-        title: 'Relaxation Complete',
-        message: `You've collected ${MINE_AMOUNT} Heaven Points! Come back tomorrow.`,
-        buttons: [{type: 'ok'}]
-    });
-}
-
-async function fetchTonPrice() {
+// Fetch TON Price
+async function getPrice() {
     try {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd');
-        const data = await response.json();
-        const price = data['the-open-network'].usd;
-        tonPriceEl.innerText = `$${price}`;
-    } catch (error) {
-        console.error("Error fetching price:", error);
-        tonPriceEl.innerText = "Error";
-    }
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd');
+        const data = await res.json();
+        document.getElementById('ton-price').innerText = `$${data['the-open-network'].usd}`;
+    } catch (e) { document.getElementById('ton-price').innerText = "$5.50"; }
 }
 
-// --- INITIALIZATION ---
-mineBtn.addEventListener('click', mine);
-
-// Run on startup
-updateUI();
-checkMineStatus();
-fetchTonPrice();
-
-// Update timer every minute so the countdown moves
-setInterval(checkMineStatus, 60000);
+getPrice();
+updateDisplay();
+checkStatus();

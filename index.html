@@ -2,34 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heaven Coin - Press & Relax</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Heaven Coin</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #000; color: #fff; text-align: center; padding: 20px; }
-        .card { background: #111; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; }
-        .btn-relax { background: #0088cc; color: white; border: none; padding: 15px 30px; border-radius: 30px; font-size: 1.2rem; cursor: pointer; }
-        .btn-relax:disabled { background: #444; }
-        .monitor { display: flex; justify-content: space-around; font-size: 0.9rem; color: #aaa; }
-        .ton-val { color: #00d1ff; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Heaven Coin ☁️</h1>
-    
-    <div class="card">
-        <h3>My Heaven Points</h3>
-        <h2 id="points">0</h2>
-        <p id="timer">Ready to Relax</p>
+
+    <div class="container">
+        <header class="monitor-panel">
+            <div class="price-box">
+                <span class="label">TON Price</span>
+                <span class="value" id="ton-price">Loading...</span>
+            </div>
+            <div class="price-box">
+                <span class="label">Heaven Value</span>
+                <span class="value">0.05 TON</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="cloud-icon">☁️</div>
+            <h1>Heaven Coin</h1>
+            
+            <div class="balance-card">
+                <p class="balance-label">Your Balance</p>
+                <h2 id="point-balance">0</h2>
+                <p class="sub-balance" id="coin-balance">≈ 0 Big Coins</p>
+            </div>
+
+            <button id="mine-btn" class="relax-btn">
+                Press & Relax
+            </button>
+            
+            <p id="timer" class="timer-text">Ready to mine</p>
+        </main>
     </div>
 
-    <button id="relaxBtn" class="btn-relax" onclick="mine()">Press & Relax</button>
-
-    <div class="card monitor">
-        <div>TON: <span class="ton-val" id="tonPrice">Loading...</span></div>
-        <div>$HEAVEN: <span id="heavenVal">0.00 TON</span></div>
-    </div>
-
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

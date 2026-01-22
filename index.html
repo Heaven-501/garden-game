@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="container">
         <header class="monitor-panel">
             <div class="price-box">
@@ -16,8 +15,8 @@
                 <span class="value" id="ton-price">Loading...</span>
             </div>
             <div class="price-box">
-                <span class="label">Heaven Value</span>
-                <span class="value">0.05 TON</span>
+                <span class="label">1 $HEAVEN</span>
+                <span class="value">≈ 5.20 TON</span>
             </div>
         </header>
 
@@ -26,19 +25,19 @@
             <h1>Heaven Coin</h1>
             
             <div class="balance-card">
-                <p class="balance-label">Your Balance</p>
-                <h2 id="point-balance">0</h2>
-                <p class="sub-balance" id="coin-balance">≈ 0 Big Coins</p>
+                <p class="balance-label">Total Points Harvested</p>
+                <h2 id="point-balance">0.000</h2>
+                <p class="sub-balance" id="coin-balance">0 Big Coins</p>
             </div>
 
-            <button id="mine-btn" class="relax-btn">
-                Press & Relax
-            </button>
+            <button id="mine-btn" class="relax-btn">Start Relaxing</button>
             
-            <p id="timer" class="timer-text">Ready to mine</p>
+            <div id="timer-container" class="timer-box" style="display:none;">
+                <p>Next Harvest in:</p>
+                <h3 id="countdown">24:00:00</h3>
+            </div>
         </main>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>

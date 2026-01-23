@@ -1,14 +1,99 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-body { background-color: #080808; color: white; height: 100vh; display: flex; justify-content: center; }
-.container { width: 100%; max-width: 400px; padding: 20px; display: flex; flex-direction: column; }
-.monitor-panel { display: flex; justify-content: space-between; background: #151515; padding: 15px; border-radius: 12px; border: 1px solid #222; }
-.label { font-size: 11px; color: #777; display: block; }
-.value { color: #00d1ff; font-weight: bold; }
-.main-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.cloud-icon { font-size: 80px; filter: drop-shadow(0 0 15px #0088cc); }
-#point-balance { font-size: 54px; color: #fff; margin: 10px 0; font-variant-numeric: tabular-nums; }
-.relax-btn { background: #0088cc; color: white; border: none; padding: 20px; border-radius: 50px; width: 80%; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 0 20px rgba(0,136,204,0.4); }
-.relax-btn:disabled { background: #222; color: #555; box-shadow: none; }
-.timer-box { margin-top: 20px; text-align: center; color: #888; }
-#countdown { color: #ffab00; font-size: 28px; margin-top: 5px; }
-  
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  background: #080808;
+  color: white;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.monitor-panel {
+  display: flex;
+  justify-content: space-between;
+  background: #151515;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #222;
+}
+
+.label {
+  font-size: 11px;
+  color: #777;
+}
+
+.value {
+  font-weight: bold;
+  color: #00d1ff;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cloud-icon {
+  font-size: 80px;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 0 12px #00aaff);
+}
+
+.balance-card {
+  text-align: center;
+  margin: 20px 0;
+}
+
+#fragment-balance {
+  font-size: 52px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sub-balance {
+  color: #888;
+}
+
+.relax-btn {
+  width: 80%;
+  padding: 18px;
+  font-size: 20px;
+  border-radius: 40px;
+  border: none;
+  background: #0088cc;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(0,136,204,0.4);
+}
+
+.relax-btn:disabled {
+  background: #222;
+  color: #555;
+  box-shadow: none;
+}
+
+.timer-box {
+  margin-top: 18px;
+  text-align: center;
+  color: #aaa;
+}
+
+#countdown {
+  font-size: 26px;
+  color: #ffab00;
+}

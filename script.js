@@ -26,11 +26,6 @@ let miningStart = parseInt(localStorage.getItem("h_mining_start")) || 0;
   fetchTonPrice();
 })();
 
-// ===== CONSTANTS =====
-const MINING_DURATION = 24 * 60 * 60 * 1000; // 24h
-const FRAGMENTS_PER_DAY = 1000;
-const FRAGMENTS_PER_SECOND = FRAGMENTS_PER_DAY / 86400;
-
 // ===== MINING LOGIC =====
 function minedFragments() {
   if (!miningStart) return 0;
@@ -111,30 +106,34 @@ function startCountdown() {
 }
 
 document.getElementById("mine-btn").addEventListener("click", () => {
+  console.log("Start Mining clicked"); // debug
   miningStart = Date.now();
   localStorage.setItem(
     "h_mining_start",
     miningStart.toString()
   );
-  tg.HapticFeedback.impactOccurred("medium");
+  if (tg.HapticFeedback?.impactOccurred) tg.HapticFeedback.impactOccurred("medium");
   updateMiningState();
 });
 
-// ===== LIVE UI TICK (CRITICAL FIX) =====
+// ===== LIVE UI TICK =====
 setInterval(() => {
   updateDisplay();
 }, 1000);
 
-// ===== TON PRICE (COSMETIC ONLY) =====
+// ===== TON PRICE FETCH WITH ERROR HANDLING =====
 async function fetchTonPrice() {
   try {
     const res = await fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd"
     );
+    if (!res.ok) throw new Error("HTTP error " + res.status);
     const data = await res.json();
+    console.log("TON price raw data:", data); // debug
     document.getElementById("ton-price").innerText =
       `$${data["the-open-network"].usd}`;
-  } catch {
+  } catch (err) {
+    console.error("Failed to fetch TON price:", err);
     document.getElementById("ton-price").innerText = "$—";
   }
 }

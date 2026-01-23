@@ -1,106 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Heaven Coin</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css?v=4" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Heaven Coin</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
-  <div class="container">
-    <div class="top-bar">
-      <button class="icon-btn" onclick="toggleModal('settings-modal')">⋮</button>
-      <div class="currency-viewer">
-        <span id="header-fragments">0</span> 🌀 | <span id="header-coins">0</span> HC
-      </div>
-      <button class="icon-btn" onclick="toggleModal('stats-modal')">👁️</button>
+    <div class="container">
+        <div class="top-bar">
+            <button class="icon-btn" onclick="toggleModal('settings-modal')">⋮</button>
+            <div class="currency-viewer">
+                <span id="header-bits">0</span> 💠 | <span id="header-hc">0.0</span> 🌀
+            </div>
+            <button class="icon-btn" onclick="toggleModal('profile-modal')">
+                <img id="top-user-img" src="https://ui-avatars.com/api/?name=Guest" class="user-avatar-small">
+            </button>
+        </div>
+
+        <header class="monitor-panel">
+            <div class="price-box">
+                <span class="label">TON Price</span>
+                <span class="value" id="ton-price">$Loading...</span>
+            </div>
+            <div class="price-box">
+                <span class="label">1 🌀 HC</span>
+                <span class="value" style="color: #ffaa00;">≈ 0.00 TON</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            
+            <section id="tab-mining" class="tab-content active">
+                <div class="cloud-icon">🌀</div>
+                <h1>Heaven Coin</h1>
+                <div class="balance-card">
+                    <p class="balance-label">Heaven Bits</p>
+                    <h2 id="bits-balance">0</h2>
+                    <p class="sub-balance" id="hc-balance">0.00 HC</p>
+                </div>
+                <button id="mine-btn" class="relax-btn">Start Mining</button>
+                <div id="timer-container" class="timer-box" style="display:none;">
+                    <p>Harvesting Bits...</p>
+                    <h3 id="countdown">24:00:00</h3>
+                </div>
+            </section>
+
+            <section id="tab-spin" class="tab-content">
+                <h2>Wheel of Fortune</h2>
+                <div class="wheel-wrapper">
+                    <div class="wheel-pointer">▼</div>
+                    <div id="wheel" class="wheel">
+                        <div class="segment" style="--i:0;"><span>50💠</span></div>
+                        <div class="segment" style="--i:1;"><span>100💠</span></div>
+                        <div class="segment" style="--i:2;"><span>200💠</span></div>
+                        <div class="segment" style="--i:3;"><span>500💠</span></div>
+                        <div class="segment" style="--i:4;"><span>1K💠</span></div>
+                        <div class="segment" style="--i:5;"><span>Try Again</span></div>
+                    </div>
+                </div>
+                <button id="spin-btn" class="relax-btn" onclick="spinWheel()">Spin Daily</button>
+                <p id="spin-timer" class="timer-text">Next spin: Ready</p>
+            </section>
+
+            <section id="tab-exchange" class="tab-content">
+                <h2>Exchange & Rewards</h2>
+                <div class="exchange-list" id="exchange-list"></div>
+            </section>
+        </main>
+
+        <nav class="tab-bar">
+            <button onclick="switchTab('mining')" id="nav-mining" class="active">⛏️<br>Mine</button>
+            <button onclick="switchTab('spin')" id="nav-spin">🎡<br>Spin</button>
+            <button onclick="switchTab('exchange')" id="nav-exchange">💠<br>Shop</button>
+        </nav>
     </div>
 
-    <header class="monitor-panel">
-      <div class="price-box">
-        <span class="label">TON Price</span>
-        <span class="value" id="ton-price">$Loading...</span>
-      </div>
-      <div class="price-box">
-        <span class="label">1 HC Value</span>
-        <span class="value" id="hc-value">≈ 5.20 TON</span>
-      </div>
-    </header>
-
-    <main class="main-content">
-      
-      <section id="tab-mining" class="tab-content active">
-        <div class="cloud-icon">🌀</div>
-        <h1>Heaven Coin</h1>
-        <div class="balance-card">
-          <p class="balance-label">Heaven Fragments</p>
-          <h2 id="fragment-balance">0.000</h2>
-          <p class="sub-balance" id="heaven-balance">0 Heaven Coins</p>
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="toggleModal('settings-modal')">&times;</span>
+            <h3>🏆 Global Leaderboard</h3>
+            <div id="leaderboard-list" class="leaderboard-container">
+                <p>Loading top players...</p>
+            </div>
+            <hr>
+            <p style="font-size:12px; color:#666;">Data synced with Heaven Database</p>
         </div>
-        <button id="mine-btn" class="relax-btn">Start Mining</button>
-        <div id="timer-container" class="timer-box" style="display:none;">
-          <p>Next harvest in</p>
-          <h3 id="countdown">24:00:00</h3>
-        </div>
-      </section>
-
-      <section id="tab-spin" class="tab-content">
-        <h2>Wheel of Fortune</h2>
-        <div class="wheel-container">
-          <div id="wheel" class="wheel">🎡</div>
-        </div>
-        <button id="spin-btn" class="relax-btn" onclick="handleSpin()">Spin for Fragments</button>
-        <p id="spin-timer" class="timer-text"></p>
-      </section>
-
-      <section id="tab-exchange" class="tab-content">
-        <h2>Requests & Exchange</h2>
-        <div class="exchange-list" id="exchange-list">
-          </div>
-      </section>
-
-    </main>
-
-    <nav class="tab-bar">
-      <button onclick="switchTab('mining')" id="nav-mining" class="active">⛏️<br>Mining</button>
-      <button onclick="switchTab('spin')" id="nav-spin">🎡<br>Spin</button>
-      <button onclick="switchTab('exchange')" id="nav-exchange">🎁<br>Exchange</button>
-    </nav>
-  </div>
-
-  <div id="settings-modal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="toggleModal('settings-modal')">&times;</span>
-      <h3>Settings</h3>
-      <div class="setting-item">
-        <span>Music</span>
-        <input type="checkbox" id="music-toggle" onchange="toggleMusic()">
-      </div>
-      <div class="setting-item">
-        <span>Sound Effects</span>
-        <input type="checkbox" id="sfx-toggle" checked>
-      </div>
-      <hr>
-      <h3>Leaderboard (Top 10)</h3>
-      <ul id="leaderboard-list">
-        </ul>
     </div>
-  </div>
 
-  <div id="stats-modal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="toggleModal('stats-modal')">&times;</span>
-      <h3>Your Stats</h3>
-      <p id="user-hash-display" style="font-size: 10px; color:#555;"></p>
-      <div class="stats-grid">
-        <div class="stat-card">Total Farmed<br><b id="stat-total">0</b></div>
-        <div class="stat-card">Spins Done<br><b id="stat-spins">0</b></div>
-      </div>
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="toggleModal('profile-modal')">&times;</span>
+            <img id="profile-img-large" src="" class="user-avatar-large">
+            <h2 id="profile-name">User</h2>
+            <p class="user-id" id="profile-id">ID: ...</p>
+            <div class="stats-grid">
+                <div class="stat-card">Bits 💠<br><b id="stat-bits">0</b></div>
+                <div class="stat-card">HC 🌀<br><b id="stat-hc">0</b></div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <script src="config.js?v=4"></script>
-  <script src="script.js?v=4"></script>
+    <script src="config.js?v=5"></script>
+    <script src="script.js?v=5"></script>
 </body>
 </html>

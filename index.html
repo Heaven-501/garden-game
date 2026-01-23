@@ -1,43 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Heaven Coin</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Heaven Coin</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="container">
-        <header class="monitor-panel">
-            <div class="price-box">
-                <span class="label">TON Price</span>
-                <span class="value" id="ton-price">Loading...</span>
-            </div>
-            <div class="price-box">
-                <span class="label">1 $HEAVEN</span>
-                <span class="value">≈ 5.20 TON</span>
-            </div>
-        </header>
+  <div class="container">
 
-        <main class="main-content">
-            <div class="cloud-icon">☁️</div>
-            <h1>Heaven Coin</h1>
-            
-            <div class="balance-card">
-                <p class="balance-label">Total Points Harvested</p>
-                <h2 id="point-balance">0.000</h2>
-                <p class="sub-balance" id="coin-balance">0 Big Coins</p>
-            </div>
+    <header class="monitor-panel">
+      <div class="price-box">
+        <span class="label">TON Price (currently)</span>
+        <span class="value" id="ton-price">Loading…</span>
+      </div>
+      <div class="price-box">
+        <span class="label">1 HEAVEN (estimated)</span>
+        <span class="value">≈ 0 TON</span>
+      </div>
+    </header>
 
-            <button id="mine-btn" class="relax-btn">Start Relaxing</button>
-            
-            <div id="timer-container" class="timer-box" style="display:none;">
-                <p>Next Harvest in:</p>
-                <h3 id="countdown">24:00:00</h3>
-            </div>
-        </main>
-    </div>
-    <script src="script.js"></script>
+    <main class="main-content">
+      <div class="cloud-icon">🌀</div>
+      <h1>Heaven Coin</h1>
+
+      <div class="balance-card">
+        <p class="balance-label">Heaven Fragments</p>
+        <h2 id="fragment-balance">0.000</h2>
+        <p class="sub-balance" id="heaven-balance">0 Heaven Coins</p>
+      </div>
+
+      <button id="mine-btn" class="relax-btn">Start Relaxing</button>
+
+      <div id="timer-container" class="timer-box" style="display:none;">
+        <p>Next harvest in</p>
+        <h3 id="countdown">24:00:00</h3>
+      </div>
+    </main>
+
+  </div>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

@@ -1,21 +1,36 @@
-// ===== CONFIGURATION =====
-const DAY_FRAGMENTS = 1000;
+// ===== FIREBASE CONFIGURATION =====
+// PASTE YOUR KEYS FROM FIREBASE CONSOLE HERE
+const firebaseConfig = {
+    apiKey: "AIzaSyCqddUvbIY8DUKWEQgftgz_cPxW1KjPpAo",          // <--- PASTE YOUR API KEY
+    authDomain: "heaven-coin-app.firebaseapp.com",
+    projectId: "heaven-coin-app",
+    storageBucket: "heaven-coin-app.firebasestorage.app",
+    messagingSenderId: "481134092657",
+    appId: "1:481134092657:web:98eccf38cd8d722c6216d0"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ===== GAME CONFIG =====
+const BITS_TO_HC = 30000;  // 30k Bits = 1 HC
+const DAILY_BITS = 1000;
 const SECONDS_IN_DAY = 86400;
-const FRAGMENTS_PER_SECOND = DAY_FRAGMENTS / SECONDS_IN_DAY;
-const MINING_DURATION = 24 * 60 * 60 * 1000; 
+const BITS_PER_SECOND = DAILY_BITS / SECONDS_IN_DAY; 
 
 // Exchange Items
 const EXCHANGE_ITEMS = [
-  { id: 1, title: "Telegram Premium (1m)", price: 10, currency: "HC", img: "⭐", desc: "Get 1 month of Telegram Premium." },
-  { id: 2, title: "Mystery Box", price: 5000, currency: "Fragments", img: "🎁", desc: "Contains 500-2000 fragments." },
-  { id: 3, title: "Speed Booster", price: 2, currency: "HC", img: "⚡", desc: "Mine 1.5x faster for 24 hours." }
+    { id: 1, name: "Mystic Aura", cost: 2000, type: "bits", icon: "✨", desc: "Just a shiny cosmetic." },
+    { id: 2, name: "Double Speed", cost: 5, type: "hc", icon: "⚡", desc: "Mine 2x faster (24h)." }
 ];
 
-// Mock Leaderboard
-const MOCK_LEADERBOARD = [
-  { name: "SkyWalker", coins: 45 },
-  { name: "CloudNine", coins: 32 },
-  { name: "ZenMaster", coins: 28 },
-  { name: "Angel_HC", coins: 15 },
-  { name: "CryptoDev", coins: 12 }
+// Wheel Rewards (Degrees and Values)
+const WHEEL_SEGMENTS = [
+    { deg: 30, val: 50 },
+    { deg: 90, val: 100 },
+    { deg: 150, val: 200 },
+    { deg: 210, val: 500 },
+    { deg: 270, val: 1000 },
+    { deg: 330, val: 0 } // Try Again
 ];
